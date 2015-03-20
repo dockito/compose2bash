@@ -19,7 +19,11 @@ var (
 
 const bashTemplate = `#!/bin/bash
 /usr/bin/docker pull {{.Image}}
-/usr/bin/docker rm -f {{.Name}}_1
+
+if /usr/bin/docker ps | grep --quiet {{.Name}}_1 ; then
+  	/usr/bin/docker rm -f {{.Name}}_1
+fi
+
 /usr/bin/docker run \
 	{{if .Privileged}}--privileged=true {{end}} \
 	--restart=always \
