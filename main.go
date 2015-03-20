@@ -23,20 +23,6 @@ type Service struct {
 	Environments []string
 }
 
-const serviceTemplate = `
-#!/bin/bash
-/usr/bin/docker pull {{.Image}}
-/usr/bin/docker rm -f {{.Name}}_1
-/usr/bin/docker run \
-	{{if .Privileged}}--privileged=true {{end}} \
-	--restart=always \
-	-d \
-	--name {{.Name}}_1 \
-	{{range .Volumes}}-v {{.}} {{end}} \
-	{{range .Environments}}-e {{.}} {{end}} \
-	{{range .Ports}}-p {{.}} {{end}} \
-	{{.Image}}  {{.Command}}`
-
 func convertFigToBash(appName string, serviceName interface{}, serviceConfig interface{}) Service {
 	service := Service{}
 
@@ -116,8 +102,7 @@ func main() {
 		services[service.Name] = service
 	}
 
-	t := template.New("service-bash-template")
-	t, _ = t.Parse(serviceTemplate)
+	t, _ := template.ParseFiles("service-bash-template.sh")
 
 	for _, service := range services {
 		f, _ := os.Create(path.Join(*outputPath, service.Name+".1.sh"))
