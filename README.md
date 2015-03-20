@@ -1,7 +1,7 @@
 compose2bash
 ========
 
-Toll that converts docker-compose.yml (former fig.yml) files to bash scripts.
+Tool that converts docker-compose.yml (former fig.yml) files to bash scripts.
 
 
 ## Download
