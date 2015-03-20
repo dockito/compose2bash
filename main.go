@@ -80,7 +80,7 @@ func loadYaml(filename string) (map[interface{}]interface{}, error) {
 
 func main() {
 	appName := flag.String("app", "", "application name")
-	figPath := flag.String("fig", "fig.yml", "fig file path")
+	composePath := flag.String("yml", "docker-compose.yml", "compose file path")
 	outputPath := flag.String("output", ".", "output directory")
 
 	flag.Parse()
@@ -90,9 +90,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	data, err := loadYaml(*figPath)
+	data, err := loadYaml(*composePath)
 	if err != nil {
-		log.Fatalf("error parsing fig.yml %v", err)
+		log.Fatalf("error parsing docker-compose.yml %v", err)
 	}
 
 	services := make(map[string]Service)

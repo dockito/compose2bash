@@ -1,11 +1,11 @@
-fig2bash
+compose2bash
 ========
 
-Convert fig.yml to bash formatted configuration files
+Toll that converts docker-compose.yml (former fig.yml) files to bash scripts.
 
 
 # Usage
 
 ```bash
-go run main.go -fig=examples/fig.yml -output=examples/output -app=myapp
+go run main.go -yml=examples/docker-compose.yml -output=examples/output -app=myapp
 ```
