@@ -56,3 +56,4 @@ api:
 - **-app**: Application name
 - **-output**: Output directory (default `.`)
 - **-yml**: Compose file path (default `docker-compose.yml`)
+- **docker-host**: Docker host connection
