@@ -17,6 +17,20 @@ var (
 	outputPath  string
 )
 
+const bashTemplate = `#!/bin/bash
+/usr/bin/docker pull {{.Image}}
+/usr/bin/docker rm -f {{.Name}}_1
+/usr/bin/docker run \
+	{{if .Privileged}}--privileged=true {{end}} \
+	--restart=always \
+	-d \
+	--name {{.Name}}_1 \
+	{{range .Volumes}}-v {{.}} {{end}} \
+	{{range .Environment}}-e {{.}} {{end}} \
+	{{range .Ports}}-p {{.}} {{end}} \
+	{{.Image}}  {{.Command}}
+`
+
 // Service has the same structure used by docker-compose.yml
 type Service struct {
 	Name        string
@@ -39,7 +53,8 @@ func loadYaml(filename string) (services map[string]Service, err error) {
 
 // Saves the services data into bash scripts
 func saveToBash(services map[string]Service) {
-	t, _ := template.ParseFiles("service-bash-template.sh")
+	t := template.New("service-bash-template")
+	t, _ = t.Parse(bashTemplate)
 
 	for name, service := range services {
 		service.Name = appName + "-" + name
