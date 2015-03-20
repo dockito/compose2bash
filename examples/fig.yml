@@ -1,0 +1,21 @@
+api:
+  image: docker.mydomain.com/api:latest
+  ports:
+    - 3000
+  environment:
+    VIRTUAL_PORT: 3000
+    VIRTUAL_HOST: api.mydomain.com
+    NODE_ENV: development
+    MONGO_DATABASE: develop_api
+  volumes:
+    - .:/src
+
+app:
+  image: docker.mydomain.com/app:latest
+  ports:
+    - 80
+  environment:
+    VIRTUAL_HOST: app.mydomain.com
+    VIRTUAL_PORT: 80
+    NODE_ENV: production
+    API_URL: http://api.mydomain.com
