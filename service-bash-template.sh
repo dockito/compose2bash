@@ -7,6 +7,6 @@
     -d \
     --name {{.Name}}_1 \
     {{range .Volumes}}-v {{.}} {{end}} \
-    {{range .Environments}}-e {{.}} {{end}} \
+    {{range .Environment}}-e {{.}} {{end}} \
     {{range .Ports}}-p {{.}} {{end}} \
     {{.Image}}  {{.Command}}

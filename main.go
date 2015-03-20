@@ -11,103 +11,64 @@ import (
 	"text/template"
 )
 
-// Service ...
+var (
+	appName     string
+	composePath string
+	outputPath  string
+)
+
+// Service has the same structure used by docker-compose.yml
 type Service struct {
-	Name         string
-	Image        string
-	Ports        []string
-	Volumes      []string
-	Privileged   bool
-	Command      string
-	Links        []string
-	Environments []string
+	Name        string
+	Image       string
+	Ports       []string
+	Volumes     []string
+	Privileged  bool
+	Command     string
+	Environment map[string]string
 }
 
-func convertFigToBash(appName string, serviceName interface{}, serviceConfig interface{}) Service {
-	service := Service{}
-
-	name, _ := serviceName.(string)
-	service.Name = appName + "-" + name
-
-	serviceConfig1, _ := serviceConfig.(map[interface{}]interface{})
-
-	service.Image, _ = serviceConfig1["image"].(string)
-
-	service.Privileged = (serviceConfig1["privileged"] != nil)
-
-	if command := serviceConfig1["command"]; command != nil {
-		service.Command = command.(string)
-	}
-
-	ports, _ := serviceConfig1["ports"].([]interface{})
-	if ports != nil {
-		for _, port := range ports {
-			p, _ := port.(string)
-			service.Ports = append(service.Ports, p)
-		}
-	}
-
-	volumes, _ := serviceConfig1["volumes"].([]interface{})
-	if volumes != nil {
-		for _, volume := range volumes {
-			p, _ := volume.(string)
-			service.Volumes = append(service.Volumes, p)
-		}
-	}
-
-	environment, _ := serviceConfig1["environment"].(map[interface{}]interface{})
-	if environment != nil {
-		for _, env := range environment {
-			p, _ := env.(string)
-			service.Ports = append(service.Ports, p)
-		}
-	}
-
-	return service
-}
-
-func loadYaml(filename string) (map[interface{}]interface{}, error) {
-	m := make(map[interface{}]interface{})
-
+// Parses the original Yaml to the Service struct
+func loadYaml(filename string) (services map[string]Service, err error) {
 	data, err := ioutil.ReadFile(filename)
-
 	if err == nil {
-		err = yaml.Unmarshal([]byte(data), &m)
+		err = yaml.Unmarshal([]byte(data), &services)
 	}
-
-	return m, err
+	return
 }
 
-func main() {
-	appName := flag.String("app", "", "application name")
-	composePath := flag.String("yml", "docker-compose.yml", "compose file path")
-	outputPath := flag.String("output", ".", "output directory")
-
-	flag.Parse()
-
-	if *appName == "" {
-		fmt.Println("Missing app argument")
-		os.Exit(1)
-	}
-
-	data, err := loadYaml(*composePath)
-	if err != nil {
-		log.Fatalf("error parsing docker-compose.yml %v", err)
-	}
-
-	services := make(map[string]Service)
-
-	for serviceName, serviceConfig := range data {
-		service := convertFigToBash(*appName, serviceName, serviceConfig)
-		services[service.Name] = service
-	}
-
+// Saves the services data into bash scripts
+func saveToBash(services map[string]Service) {
 	t, _ := template.ParseFiles("service-bash-template.sh")
 
-	for _, service := range services {
-		f, _ := os.Create(path.Join(*outputPath, service.Name+".1.sh"))
+	for name, service := range services {
+		service.Name = appName + "-" + name
+
+		f, _ := os.Create(path.Join(outputPath, service.Name+".1.sh"))
 		defer f.Close()
 
 		t.Execute(f, service)
 	}
+}
+
+func main() {
+	flag.StringVar(&appName, "app", "", "application name")
+	flag.StringVar(&composePath, "yml", "docker-compose.yml", "compose file path")
+	flag.StringVar(&outputPath, "output", ".", "output directory")
+
+	flag.Parse()
+
+	if appName == "" {
+		fmt.Println("Missing app argument")
+		os.Exit(1)
+	}
+
+	services, err := loadYaml(composePath)
+	if err != nil {
+		log.Fatalf("error parsing docker-compose.yml %v", err)
+	}
+
+	saveToBash(services)
+
+	fmt.Println("Successfully converted Yaml to Bash script.")
 }
