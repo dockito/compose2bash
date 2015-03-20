@@ -12,19 +12,20 @@ import (
 )
 
 var (
-	appName     string
-	composePath string
-	outputPath  string
+	appName        string
+	composePath    string
+	outputPath     string
+	dockerHostConn string
 )
 
 const bashTemplate = `#!/bin/bash
-/usr/bin/docker pull {{.Image}}
+/usr/bin/docker {{.DockerHostConnCmdArg}} pull {{.Image}}
 
-if /usr/bin/docker ps | grep --quiet {{.Name}}_1 ; then
-  	/usr/bin/docker rm -f {{.Name}}_1
+if /usr/bin/docker {{.DockerHostConnCmdArg}} ps | grep --quiet {{.Name}}_1 ; then
+  	/usr/bin/docker {{.DockerHostConnCmdArg}} rm -f {{.Name}}_1
 fi
 
-/usr/bin/docker run \
+/usr/bin/docker {{.DockerHostConnCmdArg}} run \
 	{{if .Privileged}}--privileged=true {{end}} \
 	--restart=always \
 	-d \
@@ -44,6 +45,8 @@ type Service struct {
 	Privileged  bool
 	Command     string
 	Environment map[string]string
+	// helper variables
+	DockerHostConnCmdArg string
 }
 
 // Parses the original Yaml to the Service struct
@@ -65,6 +68,9 @@ func saveToBash(services map[string]Service) (err error) {
 
 	for name, service := range services {
 		service.Name = appName + "-" + name
+		if dockerHostConn != "" {
+			service.DockerHostConnCmdArg = "--host=" + dockerHostConn
+		}
 
 		f, _ := os.Create(path.Join(outputPath, service.Name+".1.sh"))
 		defer f.Close()
@@ -79,6 +85,7 @@ func main() {
 	flag.StringVar(&appName, "app", "", "application name")
 	flag.StringVar(&composePath, "yml", "docker-compose.yml", "compose file path")
 	flag.StringVar(&outputPath, "output", ".", "output directory")
+	flag.StringVar(&dockerHostConn, "docker-host", "", "docker host connection")
 
 	flag.Parse()
 
