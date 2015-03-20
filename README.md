@@ -39,7 +39,11 @@ api:
 ```bash
 #!/bin/bash
 /usr/bin/docker pull docker.mydomain.com/api:latest
-/usr/bin/docker rm -f myapp-api_1
+
+if /usr/bin/docker ps | grep --quiet myapp-api_1 ; then
+    /usr/bin/docker rm -f myapp-api_1
+fi
+
 /usr/bin/docker run \
     --privileged=true  \
     --restart=always \
