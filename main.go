@@ -52,9 +52,12 @@ func loadYaml(filename string) (services map[string]Service, err error) {
 }
 
 // Saves the services data into bash scripts
-func saveToBash(services map[string]Service) {
+func saveToBash(services map[string]Service) (err error) {
 	t := template.New("service-bash-template")
-	t, _ = t.Parse(bashTemplate)
+	t, err = t.Parse(bashTemplate)
+	if err != nil {
+		return err
+	}
 
 	for name, service := range services {
 		service.Name = appName + "-" + name
@@ -64,6 +67,8 @@ func saveToBash(services map[string]Service) {
 
 		t.Execute(f, service)
 	}
+
+	return nil
 }
 
 func main() {
@@ -83,7 +88,9 @@ func main() {
 		log.Fatalf("error parsing docker-compose.yml %v", err)
 	}
 
-	saveToBash(services)
+	if err = saveToBash(services); err != nil {
+		log.Fatalf("error saving bash template %v", err)
+	}
 
 	fmt.Println("Successfully converted Yaml to Bash script.")
 }
