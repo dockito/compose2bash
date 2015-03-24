@@ -21,23 +21,30 @@ var (
 )
 
 const bashTemplate = `#!/bin/bash
-/usr/bin/docker {{.DockerHostConnCmdArg}} pull {{.Image}}
+/usr/bin/docker {{.DockerHostConnCmdArg}} pull {{.Service.Image}}
 
-if /usr/bin/docker {{.DockerHostConnCmdArg}} ps | grep --quiet {{.Name}}_1 ; then
-  	/usr/bin/docker {{.DockerHostConnCmdArg}} rm -f {{.Name}}_1
+if /usr/bin/docker {{.DockerHostConnCmdArg}} ps | grep --quiet {{.Service.Name}}_1 ; then
+    /usr/bin/docker {{.DockerHostConnCmdArg}} rm -f {{.Service.Name}}_1
 fi
 
 /usr/bin/docker {{.DockerHostConnCmdArg}} run \
-	{{if .Privileged}}--privileged=true {{end}} \
-	--restart=always \
-	-d \
-	--name {{.Name}}_1 \
-	{{range .Volumes}}-v {{.}} {{end}} \
-	{{range .Links}}--link {{.}} {{end}} \
-	{{range $key, $value := .Environment}}-e {{$key}}="{{$value}}" {{end}} \
-	{{range .Ports}}-p {{.}} {{end}} \
-	{{.Image}}  {{.Command}}
+  {{if .Service.Privileged}}--privileged=true {{end}} \
+  --restart=always \
+  -d \
+  --name {{.Service.Name}}_1 \
+  {{range .Service.Volumes}}-v {{.}} {{end}} \
+  {{range .Service.Links}}--link {{.}} {{end}} \
+  {{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
+  {{range .Service.Ports}}-p {{.}} {{end}} \
+  {{.Service.Image}}  {{.Service.Command}}
 `
+
+// ScriptDataTemplate contains the whole data configuration used to fill the script
+type ScriptDataTemplate struct {
+	AppName              string
+	DockerHostConnCmdArg string
+	Service              Service
+}
 
 // Service has the same structure used by docker-compose.yml
 type Service struct {
@@ -49,8 +56,6 @@ type Service struct {
 	Privileged  bool
 	Command     string
 	Environment map[string]string
-	// helper variables
-	DockerHostConnCmdArg string
 }
 
 // Parses the original Yaml to the Service struct
@@ -75,6 +80,21 @@ func setLinksWithAppName(service *Service) {
 	}
 }
 
+func buildScriptDataTemplate(serviceName string, service Service) ScriptDataTemplate {
+	// common data template for all services from the same app
+	data := ScriptDataTemplate{AppName: appName}
+	if dockerHostConn != "" {
+		data.DockerHostConnCmdArg = "--host=" + dockerHostConn
+	}
+
+	// specific data for each service
+	service.Name = appName + "-" + serviceName
+	setLinksWithAppName(&service)
+	data.Service = service
+
+	return data
+}
+
 // Saves the services data into bash scripts
 func saveToBash(services map[string]Service) (err error) {
 	t := template.New("service-bash-template")
@@ -84,15 +104,11 @@ func saveToBash(services map[string]Service) (err error) {
 	}
 
 	for name, service := range services {
-		service.Name = appName + "-" + name
-		if dockerHostConn != "" {
-			service.DockerHostConnCmdArg = "--host=" + dockerHostConn
-		}
+		data := buildScriptDataTemplate(name, service)
 
-		f, _ := os.Create(path.Join(outputPath, service.Name+".1.sh"))
+		f, _ := os.Create(path.Join(outputPath, data.Service.Name+".1.sh"))
 		defer f.Close()
-
-		t.Execute(f, service)
+		t.Execute(f, data)
 	}
 
 	return nil
