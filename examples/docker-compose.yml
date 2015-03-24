@@ -1,3 +1,8 @@
+redis:
+  image: redis:2.8
+  ports:
+    - 6379
+
 api:
   command: npm start
   image: docker.mydomain.com/api:latest
@@ -10,6 +15,8 @@ api:
     MONGO_DATABASE: develop_api
   volumes:
     - .:/src
+  links:
+    - 'redis:redis'
 
 app:
   image: docker.mydomain.com/app:latest

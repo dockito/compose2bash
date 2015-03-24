@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 	"text/template"
 
 	"gopkg.in/yaml.v2"
@@ -32,6 +33,7 @@ fi
 	-d \
 	--name {{.Name}}_1 \
 	{{range .Volumes}}-v {{.}} {{end}} \
+	{{range .Links}}--link {{.}} {{end}} \
 	{{range $key, $value := .Environment}}-e {{$key}}="{{$value}}" {{end}} \
 	{{range .Ports}}-p {{.}} {{end}} \
 	{{.Image}}  {{.Command}}
@@ -43,6 +45,7 @@ type Service struct {
 	Image       string
 	Ports       []string
 	Volumes     []string
+	Links       []string
 	Privileged  bool
 	Command     string
 	Environment map[string]string
@@ -57,6 +60,19 @@ func loadYaml(filename string) (services map[string]Service, err error) {
 		err = yaml.Unmarshal([]byte(data), &services)
 	}
 	return
+}
+
+func setLinksWithAppName(service *Service) {
+	for i := range service.Links {
+		links := strings.Split(service.Links[i], ":")
+		containerName := links[0]
+		containerAlias := containerName + "_1"
+		if len(links) > 1 {
+			containerAlias = links[1]
+		}
+
+		service.Links[i] = fmt.Sprintf("%s-%s_1:%s", appName, containerName, containerAlias)
+	}
 }
 
 // Saves the services data into bash scripts
