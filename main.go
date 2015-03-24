@@ -25,19 +25,19 @@ const bashTemplate = `#!/bin/bash
 /usr/bin/docker {{.DockerHostConnCmdArg}} pull {{.Service.Image}}
 
 if /usr/bin/docker {{.DockerHostConnCmdArg}} ps | grep --quiet {{.Service.Name}}_1 ; then
-    /usr/bin/docker {{.DockerHostConnCmdArg}} rm -f {{.Service.Name}}_1
+	/usr/bin/docker {{.DockerHostConnCmdArg}} rm -f {{.Service.Name}}_1
 fi
 
 /usr/bin/docker {{.DockerHostConnCmdArg}} run \
-  {{if .Service.Privileged}}--privileged=true {{end}} \
-  --restart=always \
-  -d \
-  --name {{.Service.Name}}_1 \
-  {{range .Service.Volumes}}-v {{.}} {{end}} \
-  {{range .Service.Links}}--link {{.}} {{end}} \
-  {{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
-  {{range .Service.Ports}}-p {{.}} {{end}} \
-  {{.Service.Image}}  {{.Service.Command}}
+	{{if .Service.Privileged}}--privileged=true {{end}} \
+	--restart=always \
+	-d \
+	--name {{.Service.Name}}_1 \
+	{{range .Service.Volumes}}-v {{.}} {{end}} \
+	{{range .Service.Links}}--link {{.}} {{end}} \
+	{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
+	{{range .Service.Ports}}-p {{.}} {{end}} \
+	{{.Service.Image}}  {{.Service.Command}}
 `
 
 // ScriptDataTemplate contains the whole data configuration used to fill the script
