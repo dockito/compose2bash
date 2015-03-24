@@ -50,7 +50,7 @@ fi
     -d \
     --name myapp-api_1 \
     -v .:/src  \
-    -e develop_api -e development -e api.mydomain.com -e 3000  \
+    -e MONGO_DATABASE="develop_api" -e NODE_ENV="development" -e VIRTUAL_HOST="api.mydomain.com" -e VIRTUAL_PORT="3000"  \
     -p 3000  \
     docker.mydomain.com/api:latest  npm start
 ```
