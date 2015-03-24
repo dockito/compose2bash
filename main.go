@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -80,6 +81,21 @@ func setLinksWithAppName(service *Service) {
 	}
 }
 
+func removeBlankLinkes(path string) {
+	re := regexp.MustCompile(`(?m)^\s*\\\n`)
+	read, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	newContents := re.ReplaceAllString(string(read), "")
+
+	err = ioutil.WriteFile(path, []byte(newContents), 0)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func buildScriptDataTemplate(serviceName string, service Service) ScriptDataTemplate {
 	// common data template for all services from the same app
 	data := ScriptDataTemplate{AppName: appName}
@@ -105,10 +121,13 @@ func saveToBash(services map[string]Service) (err error) {
 
 	for name, service := range services {
 		data := buildScriptDataTemplate(name, service)
+		fileName := path.Join(outputPath, data.Service.Name+".1.sh")
 
-		f, _ := os.Create(path.Join(outputPath, data.Service.Name+".1.sh"))
+		f, _ := os.Create(fileName)
 		defer f.Close()
 		t.Execute(f, data)
+
+		removeBlankLinkes(fileName)
 	}
 
 	return nil
