@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"text/template"
+
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -31,7 +32,7 @@ fi
 	-d \
 	--name {{.Name}}_1 \
 	{{range .Volumes}}-v {{.}} {{end}} \
-	{{range .Environment}}-e {{.}} {{end}} \
+	{{range $key, $value := .Environment}}-e {{$key}}="{{$value}}" {{end}} \
 	{{range .Ports}}-p {{.}} {{end}} \
 	{{.Image}}  {{.Command}}
 `
