@@ -24,7 +24,7 @@ var (
 const bashTemplate = `#!/bin/bash
 /usr/bin/docker {{.DockerHostConnCmdArg}} pull {{.Service.Image}}
 
-if /usr/bin/docker {{.DockerHostConnCmdArg}} ps | grep --quiet {{.Service.Name}}_1 ; then
+if /usr/bin/docker {{.DockerHostConnCmdArg}} ps -a | grep --quiet {{.Service.Name}}_1 ; then
 	/usr/bin/docker {{.DockerHostConnCmdArg}} rm -f {{.Service.Name}}_1
 fi
 
