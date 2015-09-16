@@ -61,3 +61,13 @@ fi
 - **-output**: Output directory (default `.`)
 - **-yml**: Compose file path (default `docker-compose.yml`)
 - **docker-host**: Docker host connection
+
+
+
+## Build
+
+Using [goxc](https://github.com/laher/goxc).
+
+```bash
+goxc
+```
