@@ -33,6 +33,7 @@ fi
 	--restart=always \
 	-d \
 	--name {{.Service.Name}}_1 \
+	{{if .Service.HostName}}--hostname={{.Service.HostName}} {{end}} \
 	{{range .Service.Volumes}}-v {{.}} {{end}} \
 	{{range .Service.Links}}--link {{.}} {{end}} \
 	{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
@@ -50,6 +51,7 @@ type ScriptDataTemplate struct {
 // Service has the same structure used by docker-compose.yml
 type Service struct {
 	Name        string
+	HostName    string
 	Image       string
 	Ports       []string
 	Volumes     []string

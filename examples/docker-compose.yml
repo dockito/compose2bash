@@ -1,5 +1,6 @@
 redis:
   image: redis:2.8
+  hostname: core
   ports:
     - 6379
 
