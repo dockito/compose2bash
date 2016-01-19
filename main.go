@@ -175,6 +175,7 @@ func saveToBash(services map[string]Service) (err error) {
 }
 
 func main() {
+	version := flag.Bool("v", false, "show the current version")
 	flag.StringVar(&appName, "app", "", "application name")
 	flag.StringVar(&composePath, "yml", "docker-compose.yml", "compose file path")
 	flag.StringVar(&outputPath, "output", ".", "output directory")
@@ -182,6 +183,11 @@ func main() {
 	flag.BoolVar(&interactiveBash, "interactive-bash", false, "include option to run the generated script with interactive bash")
 
 	flag.Parse()
+
+	if *version {
+		fmt.Println("compose2bash version 1.3.0")
+		return
+	}
 
 	if appName == "" {
 		fmt.Println("Missing app argument")

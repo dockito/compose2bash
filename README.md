@@ -95,6 +95,7 @@ fi
 
 ## Options
 
+- **-v**: Show the current version
 - **-app**: Application name
 - **-output**: Output directory (default `.`)
 - **-yml**: Compose file path (default `docker-compose.yml`)
