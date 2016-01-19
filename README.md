@@ -44,15 +44,53 @@ if /usr/bin/docker ps | grep --quiet myapp-api_1 ; then
     /usr/bin/docker rm -f myapp-api_1
 fi
 
-/usr/bin/docker run \
-    --privileged=true  \
+/usr/bin/docker  run \
     --restart=always \
     -d \
     --name myapp-api_1 \
     -v .:/src  \
+    --link myapp-redis_1:redis  \
     -e MONGO_DATABASE="develop_api" -e NODE_ENV="development" -e VIRTUAL_HOST="api.mydomain.com" -e VIRTUAL_PORT="3000"  \
     -p 3000  \
-    docker.mydomain.com/api:latest  npm start
+    docker.mydomain.com/api:latest npm start
+```
+
+**output: myapp-api.1.sh** with `-interactive-bash`
+```bash
+#!/bin/bash
+/usr/bin/docker  pull docker.mydomain.com/api:latest
+
+if /usr/bin/docker  ps -a | grep --quiet myapp-api_1 ; then
+	/usr/bin/docker  rm -f myapp-api_1
+fi
+
+
+while [ "$#" -gt 0 ]; do case "$1" in
+    --interactive-bash) interactivebash="true"; shift 1;;
+    *) shift;;
+  esac
+done
+
+if [[ $interactivebash == "true" ]]; then
+	/usr/bin/docker  run \
+		-ti \
+		--name myapp-api_1 \
+		-v .:/src  \
+		--link myapp-redis_1:redis  \
+		-e MONGO_DATABASE="develop_api" -e NODE_ENV="development" -e VIRTUAL_HOST="api.mydomain.com" -e VIRTUAL_PORT="3000"  \
+		-p 3000  \
+		docker.mydomain.com/api:latest bash
+else
+	/usr/bin/docker  run \
+		--restart=always \
+		-d \
+		--name myapp-api_1 \
+		-v .:/src  \
+		--link myapp-redis_1:redis  \
+		-e MONGO_DATABASE="develop_api" -e NODE_ENV="development" -e VIRTUAL_HOST="api.mydomain.com" -e VIRTUAL_PORT="3000"  \
+		-p 3000  \
+		docker.mydomain.com/api:latest npm start
+fi
 ```
 
 ## Options
@@ -60,7 +98,8 @@ fi
 - **-app**: Application name
 - **-output**: Output directory (default `.`)
 - **-yml**: Compose file path (default `docker-compose.yml`)
-- **docker-host**: Docker host connection
+- **-docker-host**: Docker host connection
+- **-interactive-bash**: Include option to run the generated script with interactive bash. Running the generated script without any argument will executed it normally. But running it with `--interactive-bash` will execute the container with interactive bash. Pretty handful for debug.
 
 
 

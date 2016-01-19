@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	appName        string
-	composePath    string
-	outputPath     string
-	dockerHostConn string
+	appName         string
+	composePath     string
+	outputPath      string
+	dockerHostConn  string
+	interactiveBash bool
 )
 
 const bashTemplate = `#!/bin/bash
@@ -28,6 +29,38 @@ if /usr/bin/docker {{.DockerHostConnCmdArg}} ps -a | grep --quiet {{.Service.Nam
 	/usr/bin/docker {{.DockerHostConnCmdArg}} rm -f {{.Service.Name}}_1
 fi
 
+{{if .InteractiveBash}}
+while [ "$#" -gt 0 ]; do case "$1" in
+    --interactive-bash) interactivebash="true"; shift 1;;
+    *) shift;;
+  esac
+done
+
+if [[ $interactivebash == "true" ]]; then
+	/usr/bin/docker {{.DockerHostConnCmdArg}} run \
+		{{if .Service.Privileged}}--privileged=true {{end}} \
+		-ti \
+		--name {{.Service.Name}}_1 \
+		{{if .Service.HostName}}--hostname={{.Service.HostName}} {{end}} \
+		{{range .Service.Volumes}}-v {{.}} {{end}} \
+		{{range .Service.Links}}--link {{.}} {{end}} \
+		{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
+		{{range .Service.Ports}}-p {{.}} {{end}} \
+		{{.Service.Image}} bash
+else
+	/usr/bin/docker {{.DockerHostConnCmdArg}} run \
+		{{if .Service.Privileged}}--privileged=true {{end}} \
+		--restart=always \
+		-d \
+		--name {{.Service.Name}}_1 \
+		{{if .Service.HostName}}--hostname={{.Service.HostName}} {{end}} \
+		{{range .Service.Volumes}}-v {{.}} {{end}} \
+		{{range .Service.Links}}--link {{.}} {{end}} \
+		{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
+		{{range .Service.Ports}}-p {{.}} {{end}} \
+		{{.Service.Image}} {{.Service.Command}}
+fi
+{{else}}
 /usr/bin/docker {{.DockerHostConnCmdArg}} run \
 	{{if .Service.Privileged}}--privileged=true {{end}} \
 	--restart=always \
@@ -38,13 +71,15 @@ fi
 	{{range .Service.Links}}--link {{.}} {{end}} \
 	{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
 	{{range .Service.Ports}}-p {{.}} {{end}} \
-	{{.Service.Image}}  {{.Service.Command}}
+	{{.Service.Image}} {{.Service.Command}}
+{{end}}
 `
 
 // ScriptDataTemplate contains the whole data configuration used to fill the script
 type ScriptDataTemplate struct {
 	AppName              string
 	DockerHostConnCmdArg string
+	InteractiveBash      bool
 	Service              Service
 }
 
@@ -100,7 +135,11 @@ func removeBlankLinkes(path string) {
 
 func buildScriptDataTemplate(serviceName string, service Service) ScriptDataTemplate {
 	// common data template for all services from the same app
-	data := ScriptDataTemplate{AppName: appName}
+	data := ScriptDataTemplate{
+		AppName:         appName,
+		InteractiveBash: interactiveBash,
+	}
+
 	if dockerHostConn != "" {
 		data.DockerHostConnCmdArg = "--host=" + dockerHostConn
 	}
@@ -140,6 +179,7 @@ func main() {
 	flag.StringVar(&composePath, "yml", "docker-compose.yml", "compose file path")
 	flag.StringVar(&outputPath, "output", ".", "output directory")
 	flag.StringVar(&dockerHostConn, "docker-host", "", "docker host connection")
+	flag.BoolVar(&interactiveBash, "interactive-bash", false, "include option to run the generated script with interactive bash")
 
 	flag.Parse()
 
