@@ -18,6 +18,9 @@ api:
     - .:/src
   links:
     - 'redis:redis'
+  env_file:
+    - .db
+    - .mq
 
 app:
   image: docker.mydomain.com/app:latest
