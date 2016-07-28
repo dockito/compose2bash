@@ -189,7 +189,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println("compose2bash version 1.4.0")
+		fmt.Println("compose2bash version 1.5.0")
 		return
 	}
 
