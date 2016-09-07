@@ -42,6 +42,7 @@ if [[ $interactivebash == "true" ]]; then
 		-ti \
 		--name {{.Service.Name}}_1 \
 		{{if .Service.HostName}}--hostname={{.Service.HostName}} {{end}} \
+		{{if .Service.Net}}--net={{.Service.Net}} {{end}} \
 		{{range .Service.Volumes}}-v {{.}} {{end}} \
 		{{range .Service.Links}}--link {{.}} {{end}} \
 		{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
@@ -55,6 +56,7 @@ else
 		-d \
 		--name {{.Service.Name}}_1 \
 		{{if .Service.HostName}}--hostname={{.Service.HostName}} {{end}} \
+		{{if .Service.Net}}--net={{.Service.Net}} {{end}} \
 		{{range .Service.Volumes}}-v {{.}} {{end}} \
 		{{range .Service.Links}}--link {{.}} {{end}} \
 		{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
@@ -69,6 +71,7 @@ fi
 	-d \
 	--name {{.Service.Name}}_1 \
 	{{if .Service.HostName}}--hostname={{.Service.HostName}} {{end}} \
+	{{if .Service.Net}}--net={{.Service.Net}} {{end}} \
 	{{range .Service.Volumes}}-v {{.}} {{end}} \
 	{{range .Service.Links}}--link {{.}} {{end}} \
 	{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
@@ -91,6 +94,7 @@ type Service struct {
 	Name        string
 	HostName    string
 	Image       string
+        Net         string
 	Ports       []string
 	Volumes     []string
 	Env_File    []string
