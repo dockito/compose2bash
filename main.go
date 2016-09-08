@@ -94,7 +94,7 @@ type Service struct {
 	Name        string
 	HostName    string
 	Image       string
-        Net         string
+	Net         string
 	Ports       []string
 	Volumes     []string
 	Env_File    []string
