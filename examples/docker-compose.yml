@@ -32,7 +32,3 @@ app:
     NODE_ENV: production
     API_URL: http://api.mydomain.com
   privileged: True
-  log_driver: gelf
-  log_opt:
-    gelf-address: udp://mydomain.com:12201
-    labels: container_group
