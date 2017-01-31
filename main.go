@@ -48,6 +48,8 @@ if [[ $interactivebash == "true" ]]; then
 		{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
 		{{range .Service.Ports}}-p {{.}} {{end}} \
 		{{range .Service.Env_File}}--env-file {{.}} {{end}} \
+                {{if .Service.Log_Driver}}--log-driver {{.Service.Log_Driver}} {{end}} \
+                {{range $key, $value := .Service.Log_Opt}}--log-opt {{$key}}={{$value}} {{end}} \
 		{{.Service.Image}} bash
 else
 	/usr/bin/docker {{.DockerHostConnCmdArg}} run \
@@ -62,6 +64,8 @@ else
 		{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
 		{{range .Service.Ports}}-p {{.}} {{end}} \
 		{{range .Service.Env_File}}--env-file {{.}} {{end}} \
+                {{if .Service.Log_Driver}}--log-driver {{.Service.Log_Driver}} {{end}} \
+                {{range $key, $value := .Service.Log_Opt}}--log-opt {{$key}}={{$value}} {{end}} \
 		{{.Service.Image}} {{.Service.Command}}
 fi
 {{else}}
@@ -77,6 +81,8 @@ fi
 	{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
 	{{range .Service.Ports}}-p {{.}} {{end}} \
 	{{range .Service.Env_File}}--env-file {{.}} {{end}} \
+        {{if .Service.Log_Driver}}--log-driver {{.Service.Log_Driver}} {{end}} \
+        {{range $key, $value := .Service.Log_Opt}}--log-opt {{$key}}={{$value}} {{end}} \
 	{{.Service.Image}} {{.Service.Command}}
 {{end}}
 `
@@ -102,6 +108,8 @@ type Service struct {
 	Privileged  bool
 	Command     string
 	Environment map[string]string
+        Log_Driver   string
+        Log_Opt      map[string]string
 }
 
 // Parses the original Yaml to the Service struct
