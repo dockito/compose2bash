@@ -47,7 +47,7 @@ if [[ $interactivebash == "true" ]]; then
 		{{range .Service.Links}}--link {{.}} {{end}} \
 		{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
 		{{range .Service.Ports}}-p {{.}} {{end}} \
-		{{range .Service.Env_File}}--env-file {{.}} {{end}} \
+		{{range .Service.Env_File}}--env-file={{.}} {{end}} \
 		{{.Service.Image}} bash
 else
 	/usr/bin/docker {{.DockerHostConnCmdArg}} run \
@@ -61,7 +61,7 @@ else
 		{{range .Service.Links}}--link {{.}} {{end}} \
 		{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
 		{{range .Service.Ports}}-p {{.}} {{end}} \
-		{{range .Service.Env_File}}--env-file {{.}} {{end}} \
+		{{range .Service.Env_File}}--env-file={{.}} {{end}} \
 		{{.Service.Image}} {{.Service.Command}}
 fi
 {{else}}
@@ -76,7 +76,7 @@ fi
 	{{range .Service.Links}}--link {{.}} {{end}} \
 	{{range $key, $value := .Service.Environment}}-e {{$key}}="{{$value}}" {{end}} \
 	{{range .Service.Ports}}-p {{.}} {{end}} \
-	{{range .Service.Env_File}}--env-file {{.}} {{end}} \
+	{{range .Service.Env_File}}--env-file={{.}} {{end}} \
 	{{.Service.Image}} {{.Service.Command}}
 {{end}}
 `
